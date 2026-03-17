@@ -1,174 +1,156 @@
 import './style.css'
 import * as THREE from 'three'
 import { ControllerInput } from './controller.js'
+import { buildDiagram } from './diagram.js'
 
-// Scene setup
+// ─── Scene setup ────────────────────────────────────────────────
 const canvas = document.createElement('canvas')
 document.getElementById('canvas-container').appendChild(canvas)
 
 const scene = new THREE.Scene()
-scene.background = new THREE.Color(0x0a0a0a)
+scene.background = new THREE.Color(0xf5ebd2) // parchment background
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-camera.position.z = 5
+const camera = new THREE.OrthographicCamera(
+  -10, 10, 18, -4, 0.1, 100
+)
+camera.position.z = 10
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 
-// Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-scene.add(ambientLight)
+// ─── Build the diagram ─────────────────────────────────────────
+const diagram = buildDiagram()
+scene.add(diagram)
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
-directionalLight.position.set(5, 5, 5)
-scene.add(directionalLight)
-
-// Create a rotating cube
-const geometry = new THREE.BoxGeometry(2, 2, 2)
-const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 })
-const cube = new THREE.Mesh(geometry, material)
-scene.add(cube)
-
-// Create a torus to rotate around the cube
-const torusGeometry = new THREE.TorusGeometry(3, 0.5, 16, 100)
-const torusMaterial = new THREE.MeshPhongMaterial({ color: 0xff6600 })
-const torus = new THREE.Mesh(torusGeometry, torusMaterial)
-scene.add(torus)
-
-// Create some small spheres
-const spheres = []
-for (let i = 0; i < 5; i++) {
-  const sphereGeometry = new THREE.SphereGeometry(0.3, 32, 32)
-  const sphereMaterial = new THREE.MeshPhongMaterial({ color: Math.random() * 0xffffff })
-  const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
-  
-  // Position around the scene
-  const angle = (i / 5) * Math.PI * 2
-  sphere.position.set(Math.cos(angle) * 4, Math.sin(angle) * 4, 0)
-  
-  scene.add(sphere)
-  spheres.push({ mesh: sphere, angle, distance: 4 })
-}
-
-// Controller setup
+// ─── Controller ─────────────────────────────────────────────────
 const controller = new ControllerInput()
 
-// State variables
-let cameraRotation = { x: 0, y: 0 }
-let selectedObject = cube
-let selectedColor = 0x00ff00
+// ─── Camera state ───────────────────────────────────────────────
+let camTarget = new THREE.Vector3(0, 7, 0) // center of the diagram
+let camZoom = 1.0
+const PAN_SPEED = 0.15
+const ZOOM_SPEED = 0.02
+const ROTATE_SPEED = 0.03
 
-// UI Elements
-const statusElement = document.getElementById('status')
-const leftStickElement = document.getElementById('left-stick')
-const rightStickElement = document.getElementById('right-stick')
-const buttonsElement = document.getElementById('buttons')
-
-// Handle window resize
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight
+function updateCameraBounds() {
+  const aspect = window.innerWidth / window.innerHeight
+  const viewHeight = 22 / camZoom
+  const viewWidth = viewHeight * aspect
+  camera.left   = camTarget.x - viewWidth / 2
+  camera.right  = camTarget.x + viewWidth / 2
+  camera.top    = camTarget.y + viewHeight / 2
+  camera.bottom = camTarget.y - viewHeight / 2
   camera.updateProjectionMatrix()
-  renderer.setSize(window.innerWidth, window.innerHeight)
+}
+
+updateCameraBounds()
+
+// ─── UI Elements ────────────────────────────────────────────────
+const statusElement   = document.getElementById('status')
+const leftStickEl     = document.getElementById('left-stick')
+const rightStickEl    = document.getElementById('right-stick')
+const buttonsEl       = document.getElementById('buttons')
+const zoomEl          = document.getElementById('zoom-level')
+
+// ─── Highlight system ──────────────────────────────────────────
+let highlightedBandIndex = -1
+const bandMeshes = []
+
+// Collect fillable band meshes from the diagram
+diagram.children.forEach(child => {
+  if (child.isMesh && child.material && child.material.color) {
+    bandMeshes.push(child)
+  }
 })
 
-// Animation loop
+function highlightBand(index) {
+  bandMeshes.forEach((mesh, i) => {
+    if (mesh.material._origColor === undefined) {
+      mesh.material._origColor = mesh.material.color.getHex()
+    }
+    if (i === index) {
+      mesh.material.color.setHex(0xffd700) // golden highlight
+    } else {
+      mesh.material.color.setHex(mesh.material._origColor)
+    }
+  })
+}
+
+// ─── Resize ─────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  updateCameraBounds()
+})
+
+// ─── Animation loop ─────────────────────────────────────────────
 function animate() {
   requestAnimationFrame(animate)
 
-  // Update controller input
   controller.update()
 
-  // Update UI
+  // UI status
   if (controller.connected) {
-    statusElement.textContent = `✓ Controller Connected`
-    statusElement.style.background = 'rgba(0, 255, 0, 0.1)'
+    statusElement.textContent = '✓ Controller Connected'
+    statusElement.style.borderColor = '#00ff00'
   } else {
-    statusElement.textContent = `✗ Waiting for controller...`
-    statusElement.style.background = 'rgba(255, 100, 0, 0.1)'
+    statusElement.textContent = '✗ Waiting for controller…'
+    statusElement.style.borderColor = '#ff6600'
   }
-
-  // Update stick display
-  leftStickElement.textContent = `Left Stick: (${controller.leftStick.x.toFixed(2)}, ${controller.leftStick.y.toFixed(2)})`
-  rightStickElement.textContent = `Right Stick: (${controller.rightStick.x.toFixed(2)}, ${controller.rightStick.y.toFixed(2)})`
-
-  // Get active buttons
+  leftStickEl.textContent  = `L Stick: (${controller.leftStick.x.toFixed(2)}, ${controller.leftStick.y.toFixed(2)})`
+  rightStickEl.textContent = `R Stick: (${controller.rightStick.x.toFixed(2)}, ${controller.rightStick.y.toFixed(2)})`
   const activeButtons = Object.entries(controller.buttons)
-    .filter(([_, pressed]) => pressed)
-    .map(([name]) => name)
-  buttonsElement.textContent = `Buttons: ${activeButtons.length > 0 ? activeButtons.join(', ') : 'None'}`
+    .filter(([_, p]) => p).map(([n]) => n)
+  buttonsEl.textContent = `Buttons: ${activeButtons.length ? activeButtons.join(', ') : 'None'}`
 
-  // Camera control with right stick
-  cameraRotation.x += controller.rightStick.y * 0.05
-  cameraRotation.y += controller.rightStick.x * 0.05
+  // ── Left stick → pan camera ──
+  camTarget.x += controller.leftStick.x * PAN_SPEED
+  camTarget.y -= controller.leftStick.y * PAN_SPEED
 
-  // Clamp vertical rotation
-  cameraRotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraRotation.x))
+  // ── Right stick Y → zoom ──
+  camZoom += controller.rightStick.y * -ZOOM_SPEED
+  camZoom = Math.max(0.3, Math.min(5.0, camZoom))
+  if (zoomEl) zoomEl.textContent = `Zoom: ${camZoom.toFixed(2)}x`
 
-  // Apply camera rotation
-  camera.position.x = Math.sin(cameraRotation.y) * 5
-  camera.position.y = Math.sin(cameraRotation.x) * 5
-  camera.position.z = Math.cos(cameraRotation.y) * 5
-  camera.lookAt(0, 0, 0)
+  // ── Triggers → rotate diagram ──
+  diagram.rotation.z += controller.triggers.right * ROTATE_SPEED
+  diagram.rotation.z -= controller.triggers.left  * ROTATE_SPEED
 
-  // Rotate cube with left stick
-  cube.rotation.x += controller.leftStick.y * 0.05
-  cube.rotation.y += controller.leftStick.x * 0.05
+  // ── D-Pad / Bumpers → cycle through bands ──
+  if (controller.isPressed('RB') && !controller._rbPrev) {
+    highlightedBandIndex = (highlightedBandIndex + 1) % bandMeshes.length
+    highlightBand(highlightedBandIndex)
+  }
+  if (controller.isPressed('LB') && !controller._lbPrev) {
+    highlightedBandIndex = (highlightedBandIndex - 1 + bandMeshes.length) % bandMeshes.length
+    highlightBand(highlightedBandIndex)
+  }
+  controller._rbPrev = controller.isPressed('RB')
+  controller._lbPrev = controller.isPressed('LB')
 
-  // Torus rotation
-  torus.rotation.x += 0.002
-  torus.rotation.y += 0.003
-
-  // Update spheres
-  spheres.forEach((item, index) => {
-    item.angle += 0.01
-    item.mesh.position.x = Math.cos(item.angle) * item.distance
-    item.mesh.position.y = Math.sin(item.angle) * item.distance
-    item.mesh.rotation.x += 0.01
-    item.mesh.rotation.y += 0.01
-  })
-
-  // Button interactions
+  // ── A button → reset view ──
   if (controller.isPressed('A')) {
-    cube.scale.set(1.2, 1.2, 1.2)
-  } else {
-    cube.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1)
+    camTarget.set(0, 7, 0)
+    camZoom = 1.0
+    diagram.rotation.z = Math.PI / 2    // original orientation
   }
 
-  if (controller.isPressed('B')) {
-    cube.rotation.z += 0.1
+  // ── Y button → toggle wireframe hint ──
+  if (controller.isPressed('Y') && !controller._yPrev) {
+    bandMeshes.forEach(m => {
+      m.material.wireframe = !m.material.wireframe
+    })
   }
+  controller._yPrev = controller.isPressed('Y')
 
-  if (controller.isPressed('X')) {
-    torus.scale.set(1.1, 1.1, 1.1)
-  } else {
-    torus.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1)
-  }
-
-  if (controller.isPressed('Y')) {
-    // Reset all rotations
-    cube.rotation.set(0, 0, 0)
-  }
-
-  // Trigger controls
-  cube.position.z += controller.triggers.right * 0.1
-  cube.position.z -= controller.triggers.left * 0.1
-
+  updateCameraBounds()
   renderer.render(scene, camera)
 }
 
 animate()
 
-// Cleanup on page unload
+// ─── Cleanup ────────────────────────────────────────────────────
 window.addEventListener('beforeunload', () => {
   controller.destroy()
   renderer.dispose()
-  geometry.dispose()
-  material.dispose()
-  torusGeometry.dispose()
-  torusMaterial.dispose()
-  spheres.forEach(item => {
-    item.mesh.geometry.dispose()
-    item.mesh.material.dispose()
-  })
 })

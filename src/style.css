@@ -9,7 +9,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-family: system-ui, -apple-system, sans-serif;
-  background: #1a1a1a;
+  background: #2a2018;
 }
 
 #canvas-container {
@@ -22,43 +22,59 @@ html, body {
   position: fixed;
   top: 20px;
   left: 20px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #00ff00;
-  padding: 20px;
-  border-radius: 8px;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
+  background: rgba(20, 12, 5, 0.9);
+  color: #d4a96a;
+  padding: 16px 20px;
+  border-radius: 6px;
+  border: 1px solid #6b4c28;
+  font-family: 'Georgia', serif;
+  font-size: 13px;
   z-index: 100;
-  max-width: 400px;
+  max-width: 340px;
 }
 
 h1 {
-  font-size: 18px;
-  margin-bottom: 10px;
-  color: #00ff00;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #e8c888;
+  font-style: italic;
+}
+
+#controls-legend {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #6b4c28;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #a0825a;
+}
+
+#controls-legend strong {
+  color: #d4a96a;
 }
 
 #status {
-  padding: 8px;
-  margin: 8px 0;
-  background: rgba(0, 255, 0, 0.1);
-  border: 1px solid #00ff00;
+  padding: 6px 8px;
+  margin: 6px 0;
+  background: rgba(107, 76, 40, 0.2);
+  border: 1px solid #6b4c28;
   border-radius: 4px;
+  font-size: 12px;
 }
 
 #controller-info {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #00ff00;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #6b4c28;
 }
 
 #controller-info div {
-  padding: 4px;
-  margin: 2px 0;
+  padding: 2px 0;
+  font-size: 12px;
 }
 
 #buttons {
-  color: #ff6600;
+  color: #c49050;
 }
 
 canvas {
