@@ -1,0 +1,68 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #1a1a1a;
+}
+
+#canvas-container {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#ui {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #00ff00;
+  padding: 20px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  z-index: 100;
+  max-width: 400px;
+}
+
+h1 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #00ff00;
+}
+
+#status {
+  padding: 8px;
+  margin: 8px 0;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+}
+
+#controller-info {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #00ff00;
+}
+
+#controller-info div {
+  padding: 4px;
+  margin: 2px 0;
+}
+
+#buttons {
+  color: #ff6600;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
