@@ -77,6 +77,23 @@ h1 {
   color: #c49050;
 }
 
+#nav {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #6b4c28;
+}
+
+#nav a {
+  color: #d4a96a;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s;
+}
+
+#nav a:hover {
+  color: #e8c888;
+}
+
 canvas {
   display: block;
   width: 100%;

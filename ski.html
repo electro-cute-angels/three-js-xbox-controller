@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ski Slopes — Xbox Controller</title>
+    <link rel="stylesheet" href="/src/ski.css" />
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+
+    <div id="hud">
+      <div id="speed-display">0 km/h</div>
+      <div id="altitude-display">Alt: 1200m</div>
+    </div>
+
+    <div id="ui">
+      <h1>⛷ Ski Slopes</h1>
+      <div id="status">Waiting for controller…</div>
+      <div id="controller-info">
+        <div id="left-stick">L Stick: (0, 0)</div>
+        <div id="right-stick">R Stick: (0, 0)</div>
+        <div id="buttons">Buttons: None</div>
+      </div>
+      <div id="controls-legend">
+        <strong>Controls</strong>
+        <div>L Stick ←→ — Steer</div>
+        <div>L Stick ↑ — Tuck (speed up)</div>
+        <div>R Stick — Look around</div>
+        <div>RT — Accelerate / Carve</div>
+        <div>LT — Brake / Snow plow</div>
+        <div>A — Jump</div>
+        <div>B — Reset position</div>
+        <div>X — Toggle snow intensity</div>
+        <div>Y — Toggle camera view</div>
+      </div>
+      <div id="nav">
+        <a href="/">← Diagram Scene</a>
+      </div>
+    </div>
+
+    <script type="module" src="/src/skiMain.js"></script>
+  </body>
+</html>
